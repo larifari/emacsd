@@ -4,9 +4,13 @@
 ;; mac keyboard sanity for international keyboards
 ;; sanity for system switchers
 (if (eq system-type 'darwin)
-    (setq mac-command-modifier 'meta)
-  (setq mac-option-modifier nil)
+ (progn
+   (setq mac-command-modifier 'meta)
+   (setq mac-option-modifier nil)
+  )
 )
+
+
 
 ;; readable-fonts please!
 ;; height is given in 10*pt-size
@@ -14,6 +18,9 @@
 
 ;; default start folder
 (setq default-directory "~/")
+
+;; sensible line wrap
+(global-visual-line-mode t)
 
 ;; load default theme light
 (load-theme 'tango t)

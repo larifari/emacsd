@@ -14,8 +14,14 @@
     org-page 
     org-pandoc 
     ox-html5slide 
-    ox-reveal 
     ox-textile org
+    org-fstree
+    org-download
+    web-mode
+    zencoding-mode
+    ac-html
+    ac-html-bootstrap
+    ac-html-csswatcher
     )  "a list of packages to ensure are installed at launch.")
 
 
@@ -61,6 +67,12 @@
 ;; Get rid of `mouse-set-font' or `mouse-appearance-menu':
 (global-set-key [S-down-mouse-1] nil)
 
+;; auto-fill-mode
+;; do not use, use visual-line-break from Options menu instead
+;;(add-hook 'org-mode-hook 'turn-on-auto-fill)
+
+
+
 ;; org v8! instead of built-in 7.9x
 ;; need to install newer org from package-list manually!
 (global-set-key "\C-cl" 'org-store-link)
@@ -101,11 +113,85 @@
               (insert (match-string 0)))))
 
 ;;  org-mac-link 
-
 ;;  Activate the grabber by typing C-c g or type M-x org-mac-grab-link
 ;;  RET. This will give you a menu in the modeline allowing you to
 ;;  select an application. The current selection in that application
 ;;  will be inserted at point as a hyperlink in your org-mode
 ;;  document.
-(add-hook 'org-mode-hook (lambda () 
-  (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)))
+(if (eq system-type 'darwin)
+    (add-hook 'org-mode-hook (lambda () 
+       (define-key org-mode-map (kbd "C-c g") 'org-mac-grab-link)))
+)
+;; set PATH to latex executables for OSX
+(if (eq system-type 'darwin)
+    (progn
+      (setenv "PATH" (concat (getenv "PATH") ":/usr/texbin"))
+      (setq exec-path (append exec-path '("/usr/texbin")))
+    )
+)
+
+
+;; webmode configuration
+(require 'web-mode) 
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.[gj]sp\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode)) 
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+
+
+(defun my-web-mode-hook () 
+  "Hooks for Web mode." 
+  (setq web-mode-markup-indent-offset 2) 
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-style-padding 1)
+  (setq web-mode-script-padding 1)
+  (setq web-mode-block-padding 0)
+  (setq web-mode-enable-auto-pairing t)
+  (setq web-mode-enable-css-colorization t)
+  (setq web-mode-enable-heredoc-fontification t)
+) 
+
+(add-hook 'web-mode-hook 'my-web-mode-hook)
+
+;; html autocomplete
+(add-hook 'html-mode-hook 'ac-html-enable)
+
+;; integrate ac-html with webmode
+(add-to-list 'web-mode-ac-sources-alist
+             '("html" . (ac-source-html-attribute-value
+                         ac-source-html-tag
+                         ac-source-html-attribute)))
+
+
+;; css color highlighting
+(defun xah-syntax-color-hex ()
+"Syntax color hex color spec such as 「#ff1100」 in current buffer."
+  (interactive)
+  (font-lock-add-keywords
+   nil
+   '(("#[abcdef[:digit:]]\\{6\\}"
+      (0 (put-text-property
+          (match-beginning 0)
+          (match-end 0)
+          'face (list :background (match-string-no-properties 0)))))))
+
+  (font-lock-fontify-buffer)
+  )
+
+(add-hook 'css-mode-hook 'xah-syntax-color-hex)
+(add-hook 'php-mode-hook 'xah-syntax-color-hex)
+(add-hook 'html-mode-hook 'xah-syntax-color-hex)
+(add-hook 'web-mode-hook 'xah-syntax-color-hex)
+
+
+;; set some snippets for various modes
+;; (setq web-mode-extra-snippets 
+;;  '(("erb" . (("name" . ("beg" . "end")))) 
+;;    ("php" . (("name" . ("beg" . "end")) 
+;;             ("name" . ("beg" . "end")))) 
+;;  ))
